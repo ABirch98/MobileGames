@@ -17,20 +17,26 @@ class GameScene: SKScene {
     
     let platform = SKSpriteNode(imageNamed: "Platform")
     
- 
     
-    
+    var DragonHalfHeight = CGFloat(0.0)
+    var PlatformHalfHeight = CGFloat(0.0)
+    var DragonHalfWidth = CGFloat(0.0)
+    var PlatformHalfWidth = CGFloat(0.0)
+    var minYDistance = CGFloat(0.0)
+    var minXDistance = CGFloat(0.0)
     
     var motionManager: CMMotionManager?
     
     let Jump = SKAction.moveBy(x: 0, y: 200, duration: 0.5)
     //let Fall = SKAction.moveBy(x: 0, y: -200, duration: 0.4)
     let scoreLabel = SKLabelNode(fontNamed:  "HelveticaNeue-Bold")
+    let DebugLabel = SKLabelNode(fontNamed:  "HelveticaNeue-Bold")
     let isAlive = true
     let startingHeight = 50
     var HighestHeight = 50
     var delay = 30
-    
+    var isJumping = false
+   
     
     var score = 0{
         didSet{
@@ -53,11 +59,18 @@ class GameScene: SKScene {
 
         
         scoreLabel.fontSize = 22
-        scoreLabel.position = CGPoint(x: 150, y: 550)
+        scoreLabel.position = CGPoint(x: 150, y: 350)
         scoreLabel.text = "score 0"
         scoreLabel.zPosition = 100
         scoreLabel.horizontalAlignmentMode = .center
         addChild(scoreLabel)
+        
+        DebugLabel.fontSize = 22
+        DebugLabel.position = CGPoint(x: 50, y: 550)
+        DebugLabel.text = "NotCollided"
+        DebugLabel.zPosition = 100
+        DebugLabel.horizontalAlignmentMode = .center
+        addChild(DebugLabel)
         
         let dragonRadius = dragon.frame.width/2
         
@@ -83,6 +96,7 @@ class GameScene: SKScene {
         if let accelerometerData = motionManager?.accelerometerData {
             physicsWorld.gravity.dx = CGFloat(accelerometerData.acceleration.x * 50)
         }
+        GetDistanceBetween()
         jump()
         if ((Int)(dragon.position.y) > HighestHeight)
         {
@@ -108,22 +122,49 @@ class GameScene: SKScene {
     
     func jump()
     {
+        
        delay = delay + 1
        if(isAlive == true && delay >= 30)
                  {
+                    isJumping=true
+                    dragon.run(Jump)
+                    delay = 0
+                 }
+        if(delay < 29)
+        {
+            isJumping=false
+        }
+        
+    }
+    func Doublejump()
+    {
+        
+       delay = delay + 1
+       if(isAlive == true && delay >= 30)
+                 {
+                    isJumping=true
                     dragon.run(Jump)
                     delay = 0
                  }
         
     }
-    func Doublejump()
+    func GetDistanceBetween()
     {
-       delay = delay + 1
-       if(isAlive == true && delay >= 30)
-                 {
-                    dragon.run(Jump)
-                    delay = 0
-                 }
+        DragonHalfHeight = (dragon.frame.height)/2
+        PlatformHalfHeight = (platform.frame.height)/2
+        DragonHalfWidth = (dragon.frame.width)/2
+        PlatformHalfWidth = (platform.frame.width)/2
+        minYDistance = DragonHalfHeight + PlatformHalfHeight
+        minXDistance = DragonHalfWidth + PlatformHalfWidth
+        if (platform.position.y - dragon.position.y < minYDistance && platform.position.x - dragon.position.x < minXDistance)
+        {
+            DebugLabel.text = "Collided"
+            delay = 30
+            Doublejump()
+        }
+        else{
+            return
+        }
         
     }
 
